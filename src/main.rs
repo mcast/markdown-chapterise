@@ -8,8 +8,9 @@ fn main() {
     let mut args = env::args();
     let prog = args.next().expect("no $0 ?");
     let infile = args.next().expect(& format!("Syntax: {} <input.md> [ <outdir> ]", prog));
-    let outdir = match args.next() {
-        Some(dir) => dir.as_str().as_ref(),
+    let dir = args.next();
+    let outdir = match dir {
+        Some(ref dir) => dir.as_ref(),
         None => "./",
     };
 
