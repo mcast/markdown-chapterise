@@ -15,11 +15,17 @@ fn main() {
     };
 
     let inpath = Path::new(&infile);
-    println!("hopefully {:?} is my file; write to {}", inpath, outdir);
+    let outpath = Path::new(&outdir);
 
     // thanks A.B. in http://stackoverflow.com/a/25168563
     let infh = BufReader::new(File::open(&inpath).unwrap());
-    for line in infh.lines().filter_map(|result| result.ok()) {
-        println!("{}", line);
+    do_split(infh, &outpath, 2);
+}
+
+fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
+    println!("write to {:?}", outdir);
+
+    for line in input.lines().filter_map(|result| result.ok()) {
+        println!("{}",  line);
     }
 }
