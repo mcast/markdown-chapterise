@@ -22,11 +22,19 @@ fn main() {
     do_split(infh, &outpath, 2);
 }
 
+#[derive(Debug)]
+enum MarkdownEle {
+    Head { txt: String, n: u32 },
+    Other { txt: String },
+}
+
+
 fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
     println!("write to {:?}", outdir);
 
     for line in input.lines().peekable().filter_map(|result| result.ok()) {
         let ch: Vec<char> = line.chars().collect();
-        println!("{:?}", ch);
+        let ele = MarkdownEle::Other { txt: line };
+        println!("{:?}\n   {:?}", ch, ele);
     }
 }
