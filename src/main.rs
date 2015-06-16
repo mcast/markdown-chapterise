@@ -25,7 +25,8 @@ fn main() {
 fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
     println!("write to {:?}", outdir);
 
-    for line in input.lines().filter_map(|result| result.ok()) {
-        println!("{}",  line);
+    for line in input.lines().peekable().filter_map(|result| result.ok()) {
+        let ch: Vec<char> = line.chars().collect();
+        println!("{:?}", ch);
     }
 }
