@@ -32,9 +32,12 @@ enum MarkdownEle {
 fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
     println!("write to {:?}", outdir);
 
-    for line in input.lines().peekable().filter_map(|result| result.ok()) {
+    let lines = input.lines().filter_map(|result| result.ok());
+    let mut lines = lines.peekable();
+    for line in lines {
+        let next = 0; // lines.peek();
         let ch: Vec<char> = line.chars().collect();
         let ele = MarkdownEle::Other { txt: line };
-        println!("{:?}\n   {:?}", ch, ele);
+        println!("{:?}\n   {:?}\n   Next up: {:?}", ch, ele, next);
     }
 }
