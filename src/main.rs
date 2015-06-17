@@ -34,8 +34,13 @@ fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
 
     let lines = input.lines().filter_map(|result| result.ok());
     let mut lines = lines.peekable();
-    for line in lines {
-        let next = 0; // lines.peek();
+    loop {
+        let line = match lines.next() {
+            None => break,
+            Some(x) => x,
+        };
+        let next = lines.peek();
+
         let ch: Vec<char> = line.chars().collect();
         let ele = MarkdownEle::Other { txt: line };
         println!("{:?}\n   {:?}\n   Next up: {:?}", ch, ele, next);
