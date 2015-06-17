@@ -7,6 +7,10 @@ use std::io::BufRead;
 mod mdslurp;
 use mdslurp::MarkdownEle;
 
+mod mdout;
+use mdout::MarkdownOut;
+
+
 fn main() {
     let mut args = env::args();
     let prog = args.next().expect("no $0 ?");
@@ -30,6 +34,7 @@ fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
 
     let lines = input.lines().filter_map(|result| result.ok());
     let mut lines = lines.peekable();
+    let mut output = MarkdownOut::new(outdir, "prelude");
     loop {
         let line = match lines.next() {
             None => break,
