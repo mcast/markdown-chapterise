@@ -28,6 +28,13 @@ enum MarkdownEle {
     Other { txt: String },
 }
 
+impl MarkdownEle {
+    fn new(line: String, next: Option<&String>) -> MarkdownEle {
+        let ch: Vec<char> = line.chars().collect();
+        MarkdownEle::Other { txt: line }
+    }
+}
+
 
 fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
     println!("write to {:?}", outdir);
@@ -40,9 +47,7 @@ fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
             Some(x) => x,
         };
         let next = lines.peek();
-
-        let ch: Vec<char> = line.chars().collect();
-        let ele = MarkdownEle::Other { txt: line };
-        println!("{:?}\n   {:?}\n   Next up: {:?}", ch, ele, next);
+        let ele = MarkdownEle::new(line, next);
+        println!("{:?}", ele);
     }
 }
