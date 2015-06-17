@@ -4,6 +4,9 @@ use std::fs::File;
 use std::io::BufReader;
 use std::io::BufRead;
 
+mod mdslurp;
+use mdslurp::MarkdownEle;
+
 fn main() {
     let mut args = env::args();
     let prog = args.next().expect("no $0 ?");
@@ -21,34 +24,6 @@ fn main() {
     let infh = BufReader::new(File::open(&inpath).unwrap());
     do_split(infh, &outpath, 2);
 }
-
-#[derive(Debug)]
-enum MarkdownEle {
-    Head { txt: String, n: u32 },
-    Other { txt: String },
-}
-
-impl MarkdownEle {
-    pub fn new(line: String, next: Option<&String>) -> MarkdownEle {
-        let ch: Vec<char> = line.chars().collect();
-        let mut hdrLevel = 0;
-        for ch in line.chars() {
-            match ch {
-                '#' => hdrLevel += 1,
-                ' ' => break,
-                _ => {
-                    hdrLevel = 0;
-                    break
-                },
-            }
-        }
-        match hdrLevel {
-            0 => MarkdownEle::Other { txt: line },
-            n => MarkdownEle::Head { txt: line, n: n },
-        }
-    }
-}
-
 
 fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
     println!("write to {:?}", outdir);
