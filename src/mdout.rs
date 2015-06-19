@@ -41,6 +41,21 @@ impl<'a> MarkdownOut<'a> {
             &mut None => self.gone(),
         }
     }
+    pub fn next(&self, leafname: &str) -> MarkdownOut {
+        let outdir = self.outdir;
+        let n = self.filenum + 1;
+        let outpath = mkout(outdir, n, leafname, false);
+        let tmppath = mkout(outdir, n, leafname, true);
+        let f =  File::create(outpath.as_path()).unwrap();
+        let new = MarkdownOut {
+            outdir: outdir,
+            filenum: n,
+            outpath: outpath,
+            tmppath: tmppath,
+            outfh: RefCell::new(Some(f)),
+        };
+        new
+    }
     pub fn close(&self) -> Result<()> {
         let mut fhput = self.outfh.borrow_mut();
         match *fhput {
