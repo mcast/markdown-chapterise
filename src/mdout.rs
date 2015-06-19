@@ -22,18 +22,8 @@ pub struct MarkdownOut<'a> {
 // XXX: some pattern or crate, for (final Path, tmp Path, File being written; move on close) ?
 
 impl<'a> MarkdownOut<'a> {
-    pub fn new(outdir: &'a Path, leafname: &str) -> MarkdownOut<'a> {
-        let outpath = mkout(outdir, 0, leafname, false);
-        let tmppath = mkout(outdir, 0, leafname, true);
-        let f =  File::create(outpath.as_path()).unwrap();
-        let new = MarkdownOut {
-            outdir: outdir,
-            filenum: 0,
-            outpath: outpath,
-            tmppath: tmppath,
-            outfh: RefCell::new(Some(f)),
-        };
-        new
+    pub fn new(outdir: &'a Path, leafname: &'a str) -> MarkdownOut<'a> {
+        _new(outdir, 0, leafname)
     }
     pub fn append(&self, data: String) -> Result<()> {
         let mut fhput = self.outfh.borrow_mut();
@@ -46,20 +36,9 @@ impl<'a> MarkdownOut<'a> {
             None => self.gone(),
         }
     }
-    pub fn next(&self, leafname: &str) -> MarkdownOut {
-        let outdir = self.outdir;
+    pub fn next<'b>(&'a self, leafname: &'b str) -> MarkdownOut<'b> {
         let n = self.filenum + 1;
-        let outpath = mkout(outdir, n, leafname, false);
-        let tmppath = mkout(outdir, n, leafname, true);
-        let f =  File::create(outpath.as_path()).unwrap();
-        let new = MarkdownOut {
-            outdir: outdir,
-            filenum: n,
-            outpath: outpath,
-            tmppath: tmppath,
-            outfh: RefCell::new(Some(f)),
-        };
-        new
+        _new(self.outdir, n, leafname)
     }
     pub fn close(&self) -> Result<()> {
         let mut fhput = self.outfh.borrow_mut();
@@ -78,6 +57,20 @@ impl<'a> MarkdownOut<'a> {
     }
 }
 
+
+fn _new<'a>(outdir: &'a Path, filenum: u32, leafname: &'a str) -> MarkdownOut<'a> {
+    let outpath = mkout(outdir, filenum, leafname, false);
+    let tmppath = mkout(outdir, filenum, leafname, true);
+    let f =  File::create(outpath.as_path()).unwrap();
+    let new = MarkdownOut {
+        outdir: outdir,
+        filenum: filenum,
+        outpath: outpath,
+        tmppath: tmppath,
+        outfh: RefCell::new(Some(f)),
+    };
+    new
+}
 
 fn mkout(outdir: &Path, filenum: u32, leafname: &str, is_tmp: bool) -> PathBuf {
     let mut outpath = outdir.to_path_buf();
