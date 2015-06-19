@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 use std::fs::{ File, rename };
 use std::io::{Result, Error, ErrorKind};
-use std::cell::Cell;
+use std::cell::RefCell;
 
 // #[derive(Debug)] // XXX: not for File
 pub struct MarkdownOut<'a> {
@@ -14,7 +14,7 @@ pub struct MarkdownOut<'a> {
     /// Name at which File is created
     tmppath: PathBuf,
     /// The current output
-    outfh: Cell<Option<File>>, // XXX: mutability needed to close File, better way?
+    outfh: RefCell<Option<File>>, // XXX: mutability needed to close File, better way?
 }
 // XXX: some pattern or crate, for (final Path, tmp Path, File being written; move on close) ?
 
@@ -28,15 +28,16 @@ impl<'a> MarkdownOut<'a> {
             filenum: 0,
             outpath: outpath,
             tmppath: tmppath,
-            outfh: Cell::new(Some(f)),
+            outfh: RefCell::new(Some(f)),
         };
         new
     }
     pub fn close(&self) -> Result<()> {
-        match self.outfh.get() {
+        let mut fhput = self.outfh.borrow_mut();
+        match *fhput {
             Some(_) => {
                 try!(rename(self.tmppath.as_path(), self.outpath.as_path()));
-                self.outfh.set(None);
+                *fhput = None;
                 Ok(())
             },
             None => {
