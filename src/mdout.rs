@@ -7,9 +7,9 @@ use std::ops::DerefMut;
 
 
 // #[derive(Debug)] // XXX: not for File
-pub struct MarkdownOut<'a> {
+pub struct MarkdownOut {
     /// Directory into which we write
-    outdir: &'a Path,
+    outdir: PathBuf,
     /// Serial number prefix for output files
     filenum: u32,
     /// Final name for the File after closing
@@ -21,9 +21,9 @@ pub struct MarkdownOut<'a> {
 }
 // XXX: some pattern or crate, for (final Path, tmp Path, File being written; move on close) ?
 
-impl<'a> MarkdownOut<'a> {
-    pub fn new(outdir: &'a Path, leafname: &'a str) -> MarkdownOut<'a> {
-        _new(outdir, 0, leafname)
+impl MarkdownOut {
+    pub fn new(outdir: &Path, leafname: &str) -> MarkdownOut {
+        _new(outdir.to_path_buf(), 0, leafname)
     }
     pub fn append(&self, data: String) -> Result<()> {
         let mut fhput = self.outfh.borrow_mut();
@@ -36,7 +36,7 @@ impl<'a> MarkdownOut<'a> {
             None => self.gone(),
         }
     }
-    pub fn next<'b>(&'a self, leafname: &'b str) -> MarkdownOut<'b> {
+    pub fn next(&self, leafname: &str) -> MarkdownOut {
         let n = self.filenum + 1;
         _new(self.outdir, n, leafname)
     }
@@ -58,9 +58,9 @@ impl<'a> MarkdownOut<'a> {
 }
 
 
-fn _new<'a>(outdir: &'a Path, filenum: u32, leafname: &'a str) -> MarkdownOut<'a> {
-    let outpath = mkout(outdir, filenum, leafname, false);
-    let tmppath = mkout(outdir, filenum, leafname, true);
+fn _new(outdir: PathBuf, filenum: u32, leafname: &str) -> MarkdownOut {
+    let outpath = mkout(&outdir, filenum, leafname, false);
+    let tmppath = mkout(&outdir, filenum, leafname, true);
     let f =  File::create(outpath.as_path()).unwrap();
     let new = MarkdownOut {
         outdir: outdir,
@@ -72,8 +72,8 @@ fn _new<'a>(outdir: &'a Path, filenum: u32, leafname: &'a str) -> MarkdownOut<'a
     new
 }
 
-fn mkout(outdir: &Path, filenum: u32, leafname: &str, is_tmp: bool) -> PathBuf {
-    let mut outpath = outdir.to_path_buf();
+fn mkout(outdir: &PathBuf, filenum: u32, leafname: &str, is_tmp: bool) -> PathBuf {
+    let mut outpath = outdir.clone();
     let sfx = if is_tmp {
         "+" // XXX: insecure tmpfile.  tmpnam is unstable & libc; rand is elsewhere
     } else {
