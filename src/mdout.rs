@@ -1,7 +1,10 @@
 use std::path::{Path, PathBuf};
 use std::fs::{ File, rename };
+use std::io::Write;
 use std::io::{Result, Error, ErrorKind};
 use std::cell::RefCell;
+use std::ops::DerefMut;
+
 
 // #[derive(Debug)] // XXX: not for File
 pub struct MarkdownOut<'a> {
@@ -32,6 +35,12 @@ impl<'a> MarkdownOut<'a> {
         };
         new
     }
+    pub fn append(&self, data: String) -> Result<()> {
+        match self.outfh.borrow_mut().deref_mut() {
+            &mut Some(mut f) => f.write_all(data.as_bytes()),
+            &mut None => self.gone(),
+        }
+    }
     pub fn close(&self) -> Result<()> {
         let mut fhput = self.outfh.borrow_mut();
         match *fhput {
@@ -40,11 +49,12 @@ impl<'a> MarkdownOut<'a> {
                 *fhput = None;
                 Ok(())
             },
-            None => {
-                let msg = "File was already closed and renamed";
-                Err( Error::new(ErrorKind::AlreadyExists, msg) )
-            },
+            None => self.gone(),
         }
+    }
+    fn gone(&self) -> Result<()> {
+        let msg = "File was already closed and renamed";
+        Err( Error::new(ErrorKind::AlreadyExists, msg) )
     }
 }
 
