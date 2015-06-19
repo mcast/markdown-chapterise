@@ -36,9 +36,14 @@ impl<'a> MarkdownOut<'a> {
         new
     }
     pub fn append(&self, data: String) -> Result<()> {
-        match self.outfh.borrow_mut().deref_mut() {
-            &mut Some(mut f) => f.write_all(data.as_bytes()),
-            &mut None => self.gone(),
+        let mut fhput = self.outfh.borrow_mut();
+        match *fhput {
+            Some(ref f) => {
+                println!("{}", data); // XXX: bogus.  have problems writing a `mut f`
+                // f.write_all(data.as_bytes()),
+                Ok(())
+            },
+            None => self.gone(),
         }
     }
     pub fn next(&self, leafname: &str) -> MarkdownOut {
