@@ -79,6 +79,6 @@ fn mkout(outdir: &PathBuf, filenum: u32, leafname: &str, is_tmp: bool) -> PathBu
     } else {
         ""
     };
-    outpath.push(format!("{:02}_{}{}", filenum, leafname, sfx));
+    outpath.push(format!("{:02}_{}.md{}", filenum, leafname, sfx));
     outpath
 }

@@ -43,16 +43,15 @@ fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
         let next = lines.peek();
         let ele = MarkdownEle::new(line, next);
         let t = match ele {
-            MarkdownEle::Other { txt: t } => t,
-            MarkdownEle::Head { txt: t, n: n } => {
+            MarkdownEle::Other { txt } => txt,
+            MarkdownEle::Head { txt, n } => {
                 if n <= split_depth {
-                    output.close();
-                    output = output.next("XXX,chaptername.md");
+                    output.close().unwrap();
+                    output = output.next("XXX,chaptername");
                 }
-                t
+                txt
             },
         };
-        println!("{:?}", t);
         output.append(t).unwrap();
     }
 }
