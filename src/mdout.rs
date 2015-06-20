@@ -36,7 +36,7 @@ impl MarkdownOut {
             None => self.gone(),
         }
     }
-    pub fn next(&self, leafname: &str) -> MarkdownOut {
+    pub fn next(self, leafname: &str) -> MarkdownOut {
         let n = self.filenum + 1;
         _new(self.outdir, n, leafname)
     }

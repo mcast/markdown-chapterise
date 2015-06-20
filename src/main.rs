@@ -52,7 +52,7 @@ fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
                 t
             },
         };
+        println!("{:?}", t);
         output.append(t).unwrap();
-        println!("{:?}", ele);
     }
 }
