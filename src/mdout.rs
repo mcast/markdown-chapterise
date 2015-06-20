@@ -3,7 +3,6 @@ use std::fs::{ File, rename };
 use std::io::Write;
 use std::io::{Result, Error, ErrorKind};
 use std::cell::RefCell;
-use std::ops::DerefMut;
 
 
 // #[derive(Debug)] // XXX: not for File
@@ -27,12 +26,9 @@ impl MarkdownOut {
     }
     pub fn append(&self, data: String) -> Result<()> {
         let mut fhput = self.outfh.borrow_mut();
-        match *fhput {
-            Some(ref f) => {
-                println!("{}", data); // XXX: bogus.  have problems writing a `mut f`
-                // f.write_all(data.as_bytes()),
-                Ok(())
-            },
+        match (*fhput).iter_mut().next() {
+            Some(&mut ref mut f) => // XXX: &mut ref mut ?!
+                f.write_all(data.as_bytes()),
             None => self.gone(),
         }
     }
