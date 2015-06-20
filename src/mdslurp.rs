@@ -7,7 +7,6 @@ pub enum MarkdownEle {
 
 impl MarkdownEle {
     pub fn new(line: String, next: Option<&String>) -> MarkdownEle {
-        let ch: Vec<char> = line.chars().collect();
         let mut hdr_level = 0;
         for ch in line.chars() {
             match ch {
@@ -19,6 +18,31 @@ impl MarkdownEle {
                 },
             }
         }
+        // setext (underlined) header detection XXX: a bit fast'n'loose
+        match next {
+            Some(t) => {
+                let mut num_minus = 0;
+                let mut num_equ = 0;
+                for ch in t.chars() {
+                    match ch {
+                        '-' => num_minus += 1,
+                        '=' => num_equ += 1,
+                        _ => {
+                            num_minus = 0;
+                            num_equ = 0;
+                            break
+                        },
+                    }
+                }
+                match (hdr_level, num_equ, num_minus) {
+                    // setext levels
+                    (0, u, 0) => if u > 0 { hdr_level = 1 },
+                    (0, 0, u) => if u > 0 { hdr_level = 2 },
+                    _ => (),
+                }
+            },
+            None => (),
+        };
         match hdr_level {
             0 => MarkdownEle::Other { txt: line },
             n => MarkdownEle::Head { txt: line, n: n },
