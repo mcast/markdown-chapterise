@@ -12,7 +12,7 @@ pub struct MarkdownOut {
     /// Serial number prefix for output files
     filenum: u32,
     /// Final name for the File after closing
-    outpath: PathBuf,
+    pub outpath: PathBuf,
     /// Name at which File is created
     tmppath: PathBuf,
     /// The current output
@@ -40,9 +40,13 @@ impl MarkdownOut {
         let mut fhput = self.outfh.borrow_mut();
         match *fhput {
             Some(_) => {
-                try!(rename(self.tmppath.as_path(), self.outpath.as_path()));
                 *fhput = None;
-                Ok(())
+                let mvd = rename(self.tmppath.as_path(), self.outpath.as_path());
+                match mvd.as_ref() {
+                    Err(err) => println!("rename: {}", err),
+                    _ => ()
+                };
+                mvd
             },
             None => self.gone(),
         }
@@ -58,6 +62,7 @@ fn _new(outdir: PathBuf, filenum: u32, leafname: &str) -> MarkdownOut {
     let outpath = mkout(&outdir, filenum, leafname, false);
     let tmppath = mkout(&outdir, filenum, leafname, true);
     let f =  File::create(outpath.as_path()).unwrap();
+    println!("create {:?}", outpath);
     let new = MarkdownOut {
         outdir: outdir,
         filenum: filenum,

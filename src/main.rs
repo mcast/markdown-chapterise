@@ -46,12 +46,14 @@ fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
             MarkdownEle::Other { txt } => txt,
             MarkdownEle::Head { txt, n } => {
                 if n <= split_depth {
+                    println!("close {:?}", output.outpath);
                     output.close().unwrap();
                     output = output.next("XXX,chaptername");
                 }
                 txt
             },
         };
+        println!("append {:?}", output.outpath);
         output.append(t).unwrap();
     }
 }
