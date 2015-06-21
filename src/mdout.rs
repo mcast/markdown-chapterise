@@ -41,12 +41,7 @@ impl MarkdownOut {
         match *fhput {
             Some(_) => {
                 *fhput = None;
-                let mvd = rename(self.tmppath.as_path(), self.outpath.as_path());
-                match mvd.as_ref() {
-                    Err(err) => println!("rename: {}", err),
-                    _ => ()
-                };
-                mvd
+                rename(self.tmppath.as_path(), self.outpath.as_path())
             },
             None => self.gone(),
         }
@@ -61,7 +56,6 @@ impl MarkdownOut {
 fn _new(outdir: PathBuf, filenum: u32, leafname: &str) -> Result<MarkdownOut> {
     let outpath = mkout(&outdir, filenum, leafname, false);
     let tmppath = mkout(&outdir, filenum, leafname, true);
-    println!("create {:?}", outpath);
     let f = try!( File::create(tmppath.as_path()) );
     let new = MarkdownOut {
         outdir: outdir,

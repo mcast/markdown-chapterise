@@ -30,11 +30,9 @@ fn main() {
 }
 
 fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
-    println!("write to {:?}", outdir);
-
     let lines = input.lines().filter_map(|result| result.ok());
     let mut lines = lines.peekable();
-    let mut output = MarkdownOut::new(outdir, "prelude");
+    let mut output = showerror("create", MarkdownOut::new(outdir, "prelude"));
     loop {
         let line = match lines.next() {
             None => break,
@@ -46,14 +44,20 @@ fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
             MarkdownEle::Other { txt } => txt,
             MarkdownEle::Head { txt, n } => {
                 if n <= split_depth {
-                    println!("close {:?}", output.outpath);
-                    output.close().unwrap();
-                    output = output.next("XXX,chaptername");
+                    showerror("close", output.close());
+                    let res = output.next("XXX,chaptername");
+                    output = showerror("create next", res)
                 }
                 txt
             },
         };
-        println!("append {:?}", output.outpath);
-        output.append(t).unwrap();
+        showerror("append", output.append(t));
+    }
+}
+
+fn showerror<T, Error>(operation: &str, r: Result<T, Error>) -> T {
+    match r.as_ref() {
+        Err(err) => panic!("{}: {}", operation, err),
+        Ok(ret) => ret,
     }
 }
