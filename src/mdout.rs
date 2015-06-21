@@ -28,7 +28,7 @@ impl MarkdownOut {
         let mut fhput = self.outfh.borrow_mut();
         match (*fhput).iter_mut().next() {
             Some(&mut ref mut f) => // XXX: &mut ref mut ?!
-                f.write_all(data.as_bytes()),
+                writeln!(f, "{}", data),
             None => self.gone(),
         }
     }
