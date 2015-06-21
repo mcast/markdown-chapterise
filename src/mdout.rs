@@ -61,8 +61,8 @@ impl MarkdownOut {
 fn _new(outdir: PathBuf, filenum: u32, leafname: &str) -> MarkdownOut {
     let outpath = mkout(&outdir, filenum, leafname, false);
     let tmppath = mkout(&outdir, filenum, leafname, true);
-    let f =  File::create(outpath.as_path()).unwrap();
     println!("create {:?}", outpath);
+    let f =  File::create(tmppath.as_path()).unwrap();
     let new = MarkdownOut {
         outdir: outdir,
         filenum: filenum,
