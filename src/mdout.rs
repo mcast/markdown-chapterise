@@ -21,7 +21,7 @@ pub struct MarkdownOut {
 // XXX: some pattern or crate, for (final Path, tmp Path, File being written; move on close) ?
 
 impl MarkdownOut {
-    pub fn new(outdir: &Path, leafname: &str) -> MarkdownOut {
+    pub fn new(outdir: &Path, leafname: &str) -> Result<MarkdownOut> {
         _new(outdir.to_path_buf(), 0, leafname)
     }
     pub fn append(&self, data: String) -> Result<()> {
@@ -32,7 +32,7 @@ impl MarkdownOut {
             None => self.gone(),
         }
     }
-    pub fn next(self, leafname: &str) -> MarkdownOut {
+    pub fn next(self, leafname: &str) -> Result<MarkdownOut> {
         let n = self.filenum + 1;
         _new(self.outdir, n, leafname)
     }
@@ -58,11 +58,11 @@ impl MarkdownOut {
 }
 
 
-fn _new(outdir: PathBuf, filenum: u32, leafname: &str) -> MarkdownOut {
+fn _new(outdir: PathBuf, filenum: u32, leafname: &str) -> Result<MarkdownOut> {
     let outpath = mkout(&outdir, filenum, leafname, false);
     let tmppath = mkout(&outdir, filenum, leafname, true);
     println!("create {:?}", outpath);
-    let f =  File::create(tmppath.as_path()).unwrap();
+    let f = try!( File::create(tmppath.as_path()) );
     let new = MarkdownOut {
         outdir: outdir,
         filenum: filenum,
@@ -70,7 +70,7 @@ fn _new(outdir: PathBuf, filenum: u32, leafname: &str) -> MarkdownOut {
         tmppath: tmppath,
         outfh: RefCell::new(Some(f)),
     };
-    new
+    Ok(new)
 }
 
 fn mkout(outdir: &PathBuf, filenum: u32, leafname: &str, is_tmp: bool) -> PathBuf {
