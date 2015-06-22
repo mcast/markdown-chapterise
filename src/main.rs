@@ -4,6 +4,8 @@ use std::fs::File;
 use std::io::BufReader;
 use std::io::BufRead;
 
+use std::io::Result;
+
 mod mdslurp;
 use mdslurp::MarkdownEle;
 
@@ -55,8 +57,8 @@ fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
     }
 }
 
-fn showerror<T, Error>(operation: &str, r: Result<T, Error>) -> T {
-    match r.as_ref() {
+fn showerror<T>(operation: &str, r: Result<T>) -> T {
+    match r {
         Err(err) => panic!("{}: {}", operation, err),
         Ok(ret) => ret,
     }
