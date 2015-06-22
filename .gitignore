@@ -12,3 +12,7 @@
 
 # Emacs
 *~
+
+# Output cruft
+0*.md
+0*.md+
