@@ -63,3 +63,19 @@ fn showerror<T>(operation: &str, r: Result<T>) -> T {
         Ok(ret) => ret,
     }
 }
+
+#[test]
+fn t_showerror_ok() {
+    let obj = "bar";
+    let res : std::io::Result<_> = std::result::Result::Ok(obj);
+    assert_eq!(showerror("foo", res), obj);
+}
+
+#[test]
+#[should_panic]
+fn t_showerror_err() {
+    let obj = "bar";
+    let err = std::io::Error::new(std::io::ErrorKind::Other, "error text");
+    let res : std::io::Result<u32> = std::result::Result::Err(err);
+    let _ = showerror("bar", res); // XXX: can't demonstrate useful error message output
+}

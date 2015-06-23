@@ -9,6 +9,7 @@ export DYLD_LIBRARY_PATH=$(RUSTHOME)/lib
 
 
 build:
+	$(CARGO) test
 	$(CARGO) build
 
 run:
