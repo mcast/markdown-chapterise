@@ -6,6 +6,9 @@ use std::io::BufRead;
 
 use std::io::Result;
 
+use std::iter::{Peekable, FilterMap};
+use std::io::Lines;
+
 mod mdslurp;
 use mdslurp::MarkdownEle;
 
@@ -31,17 +34,24 @@ fn main() {
     do_split(infh, &outpath, 2);
 }
 
+fn ele_iter<F: FnMut(Result<String>,) -> Option<String>>(lines: &mut Peekable<FilterMap<Lines<BufReader<File>>, F>>) -> Option<MarkdownEle> {
+    let line = match lines.next() {
+        None => return None,
+        Some(x) => x,
+    };
+    let next = lines.peek();
+    Some(MarkdownEle::new(line, next))
+}
+
 fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
     let lines = input.lines().filter_map(|result| result.ok());
-    let mut lines = lines.peekable();
+    let mut lines: Peekable<FilterMap<Lines<_>, _>> = lines.peekable();
     let mut output = showerror("create", MarkdownOut::new(outdir, "prelude"));
     loop {
-        let line = match lines.next() {
+        let ele = match ele_iter(&mut lines) {
             None => break,
             Some(x) => x,
         };
-        let next = lines.peek();
-        let ele = MarkdownEle::new(line, next);
         let t = match ele {
             MarkdownEle::Other { txt } => txt,
             MarkdownEle::Head { txt, n } => {
