@@ -1,5 +1,5 @@
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum MarkdownEle {
     Head { txt: String, n: u32 },
     Other { txt: String },
@@ -50,3 +50,15 @@ impl MarkdownEle {
     }
 }
 
+
+#[test]
+fn headcheck() {
+    let h = "#### foo";
+    let h = h.to_string();
+    let junk = "wibble".to_string();
+    let out1 = MarkdownEle::new(h.clone(), None);
+    let out2 = MarkdownEle::new(h.clone(), Some(&junk));
+    let want = MarkdownEle::Head { txt: h, n: 4 };
+    assert_eq!(out1, want);
+    assert_eq!(out2, want);
+}
