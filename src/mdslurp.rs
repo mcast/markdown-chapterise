@@ -62,3 +62,16 @@ fn headcheck() {
     assert_eq!(out1, want);
     assert_eq!(out2, want);
 }
+
+#[test]
+fn othercheck() {
+    let ht = "   hello world".to_owned();
+    let h1 = "==".to_owned();
+    let h2 = "--".to_owned();
+    assert_eq!(MarkdownEle::new(ht.clone(), None),
+               MarkdownEle::Other { txt: ht.clone() });
+    assert_eq!(MarkdownEle::new(ht.clone(), Some(&h1)),
+               MarkdownEle::Head { txt: ht.clone(), n: 1 });
+    assert_eq!(MarkdownEle::new(ht.clone(), Some(&h2)),
+               MarkdownEle::Head { txt: ht.clone(), n: 2 });
+}
