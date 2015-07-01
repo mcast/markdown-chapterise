@@ -36,8 +36,9 @@ impl MarkdownEle {
                 }
                 match (hdr_level, num_equ, num_minus) {
                     // setext levels
-                    (0, u, 0) => if u > 0 { hdr_level = 1 },
-                    (0, 0, u) => if u > 0 { hdr_level = 2 },
+                    (0, 0, 0) => (),
+                    (0, _n, 0) => hdr_level = 1,
+                    (0, 0, _n) => hdr_level = 2,
                     _ => (),
                 }
             },
