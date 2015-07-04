@@ -34,15 +34,6 @@ fn main() {
     do_split(infh, &outpath, 2);
 }
 
-fn ele_iter<F: FnMut(Result<String>,) -> Option<String>>(lines: &mut Peekable<FilterMap<Lines<BufReader<File>>, F>>) -> Option<MarkdownEle> {
-    let line = match lines.next() {
-        None => return None,
-        Some(x) => x,
-    };
-    let next = lines.peek();
-    Some(MarkdownEle::new(line, next))
-}
-
 fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
     let lines = input.lines().filter_map(|result| result.ok());
     let mut lines: Peekable<FilterMap<Lines<_>, _>> = lines.peekable();
