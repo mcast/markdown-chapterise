@@ -38,7 +38,7 @@ fn main() {
 }
 
 fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
-    let lines = input.lines().filter_map(|result| result.ok());
+    let lines = input.lines();
     let mut output = showerror("create", MarkdownOut::new(outdir, "prelude"));
     for ele in MarkdownStream::new(lines) {
         let t = match ele {
