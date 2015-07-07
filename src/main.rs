@@ -40,7 +40,8 @@ fn main() {
 fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
     let lines = input.lines();
     let mut output = showerror("create", MarkdownOut::new(outdir, "prelude"));
-    for ele in MarkdownStream::new(lines) {
+    let lines = lines.filter_map(|result| result.ok());
+    for ele in MarkdownStream::new(Box::new(lines)) {
         let t = match ele {
             MarkdownEle::Other { txt } => txt,
             MarkdownEle::Head { txt, n } => {

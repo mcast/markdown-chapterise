@@ -1,6 +1,5 @@
 use std::cell::RefCell;
 use std::iter::Peekable;
-use std::iter::Iterator;
 
 use std::iter::FilterMap;
 use std::io::Lines;
@@ -31,6 +30,7 @@ impl MarkdownStream {
 }
 
 impl Iterator for MarkdownStream {
+    type Item = MarkdownEle;
     pub fn next(&mut self) -> Option<MarkdownEle> {
         let lines = self.input.borrow_mut();
         let line = match lines.next() {
