@@ -15,6 +15,9 @@ use mdslurp::MarkdownEle;
 mod mdout;
 use mdout::MarkdownOut;
 
+mod mdstream;
+use mdstream::MarkdownStream;
+
 
 fn main() {
     let mut args = env::args();
@@ -36,13 +39,8 @@ fn main() {
 
 fn do_split(input: BufReader<File>, outdir: &Path, split_depth: u32) {
     let lines = input.lines().filter_map(|result| result.ok());
-    let mut lines: Peekable<FilterMap<Lines<_>, _>> = lines.peekable();
     let mut output = showerror("create", MarkdownOut::new(outdir, "prelude"));
-    loop {
-        let ele = match ele_iter(&mut lines) {
-            None => break,
-            Some(x) => x,
-        };
+    for ele in MarkdownStream::new(lines) {
         let t = match ele {
             MarkdownEle::Other { txt } => txt,
             MarkdownEle::Head { txt, n } => {
