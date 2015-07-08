@@ -12,7 +12,7 @@ use std::io::Result;
 use mdslurp::MarkdownEle;
 
 pub type LinesIter   = Iterator<Item = String>;
-type LinesIoIter = Iterator<Item = Result<String>>;
+pub type LinesIoIter = Iterator<Item = Result<String>>;
 
 
 pub struct MarkdownStream {
@@ -24,9 +24,14 @@ fn io_unwrap(result: Result<String>) -> Option<String> {
 }
 
 impl MarkdownStream {
+    pub fn new_io(lines: Box<LinesIoIter>) -> MarkdownStream {
+        let lines: Box<Iterator<Item=String>> = Box::new(lines.filter_map(io_unwrap));
+        Self::new(lines)
+        // three boxes, hmm
+    }
     pub fn new(lines: Box<LinesIter>) -> MarkdownStream {
-        let box2 = Box::new(lines.peekable());
-        MarkdownStream { input: box2 }
+        let lines = lines.peekable();
+        MarkdownStream { input: Box::new(lines) }
     }
 }
 
