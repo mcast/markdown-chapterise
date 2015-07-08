@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::iter::Peekable;
+use std::ops::DerefMut;
 
 use std::iter::FilterMap;
 use std::io::Lines;
@@ -10,29 +11,31 @@ use std::io::Result;
 
 use mdslurp::MarkdownEle;
 
-type LinesIoIter = Lines<BufReader<File>>;
+pub type LinesIter   = Iterator<Item = String>;
+type LinesIoIter = Iterator<Item = Result<String>>;
 
-// iterator howto - thanks Vladimir http://stackoverflow.com/a/27601286
 
-struct MarkdownStream {
-    input: RefCell<Peekable<FilterMap<LinesIoIter,FnMut()>>>,
+pub struct MarkdownStream {
+    input: Box<Peekable<Box<LinesIter>>>,
 }
 
-fn io_unwrap<T>(result: Result<T>) -> Option<T> {
+fn io_unwrap(result: Result<String>) -> Option<String> {
     result.ok()
 }
 
 impl MarkdownStream {
-    pub fn new(mut lines: LinesIoIter) {
-        let lines = lines.filter_map(io_unwrap).peekable();
-        MarkdownStream { input: RefCell::new(lines) }
+    pub fn new(lines: Box<LinesIter>) -> MarkdownStream {
+        let box2 = Box::new(lines.peekable());
+        MarkdownStream { input: box2 }
     }
 }
 
+// iterator howto - thanks http://rustbyexample.com/trait/iter.html
+
 impl Iterator for MarkdownStream {
     type Item = MarkdownEle;
-    pub fn next(&mut self) -> Option<MarkdownEle> {
-        let lines = self.input.borrow_mut();
+    fn next(&mut self) -> Option<MarkdownEle> {
+        let mut lines = self.input.deref_mut();
         let line = match lines.next() {
             None => return None,
             Some(x) => x,

@@ -6,9 +6,6 @@ use std::io::BufRead;
 
 use std::io::Result;
 
-use std::iter::{Peekable, FilterMap};
-use std::io::Lines;
-
 mod mdslurp;
 use mdslurp::MarkdownEle;
 
