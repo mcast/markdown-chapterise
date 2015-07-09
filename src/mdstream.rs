@@ -49,3 +49,16 @@ impl Iterator for MarkdownStream {
         Some(MarkdownEle::new(line, next))
     }
 }
+
+#[test]
+fn t_vec_others() {
+    let v:Vec<String> = ["Hello", "world"].iter().map(|s| String::from_str(s) + "\n").collect();
+    let v_cp = v.to_owned(); // thanks Vladimir http://stackoverflow.com/a/30846725
+    let lines: Box<Iterator<Item=String> + 'static> =
+        Box::new(v_cp.drain()); // XXX: v.iter() does not make an Iterator<String> ??  Workaround: clone and drain
+    // src/mdstream.rs:56:45: 56:63 error: type mismatch resolving `<core::slice::Iter<'_, collections::string::String> as core::iter::Iterator>::Item == collections::string::String`:
+    // expected &-ptr,
+    // found struct `collections::string::String` [E0271]
+    let i = MarkdownStream::new(Box::new(lines));
+    assert_eq!(i.next(), Some(MarkdownEle::Other { txt: v[0] }));
+}
