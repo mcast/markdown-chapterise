@@ -24,12 +24,12 @@ fn io_unwrap(result: Result<String>) -> Option<String> {
 }
 
 impl MarkdownStream {
-    pub fn new_io(lines: Box<LinesIoIter>) -> MarkdownStream {
+    pub fn new_io<T: LinesIoIter>(lines: Box<T>) -> MarkdownStream {
         let lines: Box<Iterator<Item=String>> = Box::new(lines.filter_map(io_unwrap));
         Self::new(lines)
         // three boxes, hmm
     }
-    pub fn new(lines: Box<LinesIter>) -> MarkdownStream {
+    pub fn new<T: LinesIter>(lines: Box<T>) -> MarkdownStream {
         let lines = lines.peekable();
         MarkdownStream { input: Box::new(lines) }
     }
@@ -55,51 +55,19 @@ mod tests {
     use super::MarkdownStream;
     use mdslurp::MarkdownEle;
 
-    fn stringvec(input: Vec<&str>) -> Vec<String> {
+    fn stringvec(input: Vec<&str>) -> (Vec<String>, Iter<String>) {
+        let v_cp = input.clone();
         let out: Vec<String> = input
-            .iter()
+            .into_iter()
             .map(|s| String::from_str(s) + "\n")
-            .into_iter()
             .collect::<Vec<String>>();
-        out
-    }
-
-    fn stringptrvec(input: Vec<&str>) -> Vec<&String> {
-        let out: Vec<&String> = input
-            .iter()
-            .map(|s| { let o = String::from_str(s) + "\n"; &o })
-            .into_iter()
-            .collect::<Vec<&String>>();
-        out
-    }
-
-    // XXX: Don't understand why I can't use v.iter() where v:String as Iterator<Iterm=String> so DIY
-    struct VecIterStr {
-        v: Vec<String>,
-        idx: isize,
-    }
-    impl Iterator for VecIterStr {
-        type Item = String;
-        fn next(&mut self) -> Option<String> {
-            if self.idx >= self.v.len() {
-                None
-            } else {
-                self.idx += 1;
-                Some(self.v[self.idx])
-            }
-        }
-    }
-    fn veciter(input: Vec<String>) -> Box<Iterator<Item=String>> {
-        let v = VecIterStr { v: input, idx: -1 };
-        let i: Iterator<Item=String> = v;
-        Box::new(i)
+        (v_cp, out)
     }
 
     #[test]
     fn t_vec_others() {
-        let v = stringvec(vec!("Hello", "world"));
-        let lines: Iterator<Item=String> = veciter(v);
-        let i = MarkdownStream::new(Box::new(lines));
+        let (v, i) = stringvec(vec!("Hello", "world"));
+        let i = MarkdownStream::new(lines);
         assert_eq!(i.next(), Some(MarkdownEle::Other { txt: v[0] }));
     }
 }
