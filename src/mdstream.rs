@@ -73,11 +73,32 @@ mod tests {
         out
     }
 
+    // XXX: Don't understand why I can't use v.iter() where v:String as Iterator<Iterm=String> so DIY
+    struct VecIterStr {
+        v: Vec<String>,
+        idx: isize,
+    }
+    impl Iterator for VecIterStr {
+        type Item = String;
+        fn next(&mut self) -> Option<String> {
+            if self.idx >= self.v.len() {
+                None
+            } else {
+                self.idx += 1;
+                Some(self.v[self.idx])
+            }
+        }
+    }
+    fn veciter(input: Vec<String>) -> Box<Iterator<Item=String>> {
+        let v = VecIterStr { v: input, idx: -1 };
+        let i: Iterator<Item=String> = v;
+        Box::new(i)
+    }
+
     #[test]
     fn t_vec_others() {
         let v = stringvec(vec!("Hello", "world"));
-        let lines: Box<Iterator<Item=String>> =
-            Box::new(v.iter());
+        let lines: Iterator<Item=String> = veciter(v);
         let i = MarkdownStream::new(Box::new(lines));
         assert_eq!(i.next(), Some(MarkdownEle::Other { txt: v[0] }));
     }
