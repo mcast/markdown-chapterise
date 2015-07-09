@@ -50,11 +50,35 @@ impl Iterator for MarkdownStream {
     }
 }
 
-#[test]
-fn t_vec_others() {
-    let v:Vec<&String> = ["Hello", "world"].iter().map(|s| { let o = String::from_str(s) + "\n"; &o }).into_iter().collect::<Vec<&String>>();
-    let lines: Box<Iterator<Item=String>> =
-        Box::new(v.iter());
-    let i = MarkdownStream::new(Box::new(lines));
-    assert_eq!(i.next(), Some(MarkdownEle::Other { txt: v[0] }));
+#[cfg(test)]
+mod tests {
+    use super::MarkdownStream;
+    use mdslurp::MarkdownEle;
+
+    fn stringvec(input: Vec<&str>) -> Vec<String> {
+        let out: Vec<String> = input
+            .iter()
+            .map(|s| String::from_str(s) + "\n")
+            .into_iter()
+            .collect::<Vec<String>>();
+        out
+    }
+
+    fn stringptrvec(input: Vec<&str>) -> Vec<&String> {
+        let out: Vec<&String> = input
+            .iter()
+            .map(|s| { let o = String::from_str(s) + "\n"; &o })
+            .into_iter()
+            .collect::<Vec<&String>>();
+        out
+    }
+
+    #[test]
+    fn t_vec_others() {
+        let v = stringvec(vec!("Hello", "world"));
+        let lines: Box<Iterator<Item=String>> =
+            Box::new(v.iter());
+        let i = MarkdownStream::new(Box::new(lines));
+        assert_eq!(i.next(), Some(MarkdownEle::Other { txt: v[0] }));
+    }
 }
