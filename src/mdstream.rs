@@ -11,29 +11,25 @@ use std::io::Result;
 
 use mdslurp::MarkdownEle;
 
-// the second one compiles here, but doesn't look like it'll actually work
-// pub trait LinesIter<T: String> : Iterator<T> { }
-// pub trait LinesIoIter : Iterator<Item = Result<String>> { }
 
-pub struct MarkdownStream {
-    input: Box<Peekable<Box<Iterator<Item=String>>>>,
+pub struct MarkdownStream<T: Iterator<Item=String>> {
+    input: Box<Peekable<Box<T>>>,
 }
 
 fn io_unwrap(result: Result<String>) -> Option<String> {
     result.ok()
 }
 
-impl MarkdownStream {
-    pub fn new_io<T>(lines: Box<T>) -> MarkdownStream
-        where T: Iterator<Item=Result<String>>
+impl<T: Iterator<Item=String>> MarkdownStream<T> {
+//     pub fn new_io<IoT: Iterator<Item=Result<String>>>(lines: Box<IoT>) -> MarkdownStream<T>
+    pub fn new_io(lines: Box<Iterator<Item=Result<String>>>) -> MarkdownStream<T>
     {
         let lines: Box<Iterator<Item=String>> =
             Box::new(lines.filter_map(io_unwrap));
-        Self::new(lines)
+        MarkdownStream { input: Box::new(lines.peekable()) }
         // three boxes, hmm
     }
-    pub fn new<T>(lines: Box<T>) -> MarkdownStream
-        where T: Iterator<Item=String>
+    pub fn new(lines: Box<T>) -> MarkdownStream<T>
     {
         let lines = lines.peekable();
         MarkdownStream { input: Box::new(lines) }
@@ -42,7 +38,7 @@ impl MarkdownStream {
 
 // iterator howto - thanks http://rustbyexample.com/trait/iter.html
 
-impl Iterator for MarkdownStream {
+impl<T: Iterator<Item=String>> Iterator for MarkdownStream<T> {
     type Item = MarkdownEle;
     fn next(&mut self) -> Option<MarkdownEle> {
         let mut lines = self.input.deref_mut();
