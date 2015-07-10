@@ -11,12 +11,12 @@ use std::io::Result;
 
 use mdslurp::MarkdownEle;
 
-pub type LinesIter   = Iterator<Item = String>;
-pub type LinesIoIter = Iterator<Item = Result<String>>;
-
+// the second one compiles here, but doesn't look like it'll actually work
+// pub trait LinesIter<T: String> : Iterator<T> { }
+// pub trait LinesIoIter : Iterator<Item = Result<String>> { }
 
 pub struct MarkdownStream {
-    input: Box<Peekable<Box<LinesIter>>>,
+    input: Box<Peekable<Box<Iterator<Item=String>>>>,
 }
 
 fn io_unwrap(result: Result<String>) -> Option<String> {
@@ -24,12 +24,17 @@ fn io_unwrap(result: Result<String>) -> Option<String> {
 }
 
 impl MarkdownStream {
-    pub fn new_io<T: LinesIoIter>(lines: Box<T>) -> MarkdownStream {
-        let lines: Box<Iterator<Item=String>> = Box::new(lines.filter_map(io_unwrap));
+    pub fn new_io<T>(lines: Box<T>) -> MarkdownStream
+        where T: Iterator<Item=Result<String>>
+    {
+        let lines: Box<Iterator<Item=String>> =
+            Box::new(lines.filter_map(io_unwrap));
         Self::new(lines)
         // three boxes, hmm
     }
-    pub fn new<T: LinesIter>(lines: Box<T>) -> MarkdownStream {
+    pub fn new<T>(lines: Box<T>) -> MarkdownStream
+        where T: Iterator<Item=String>
+    {
         let lines = lines.peekable();
         MarkdownStream { input: Box::new(lines) }
     }
@@ -54,6 +59,7 @@ impl Iterator for MarkdownStream {
 mod tests {
     use super::MarkdownStream;
     use mdslurp::MarkdownEle;
+    use std::slice::Iter;
 
     fn stringvec(input: Vec<&str>) -> (Vec<String>, Iter<String>) {
         let v_cp = input.clone();
@@ -67,7 +73,7 @@ mod tests {
     #[test]
     fn t_vec_others() {
         let (v, i) = stringvec(vec!("Hello", "world"));
-        let i = MarkdownStream::new(lines);
-        assert_eq!(i.next(), Some(MarkdownEle::Other { txt: v[0] }));
+        let m = MarkdownStream::new(i);
+        assert_eq!(m.next(), Some(MarkdownEle::Other { txt: v[0] }));
     }
 }
