@@ -26,7 +26,8 @@ impl<T: Iterator<Item=String>> MarkdownStream<T> {
     {
         let lines: Box<Iterator<Item=String>> =
             Box::new(lines.filter_map(io_unwrap));
-        MarkdownStream { input: Box::new(lines.peekable()) }
+        let out = MarkdownStream { input: Box::new(lines.peekable()) };
+        out
         // three boxes, hmm
     }
     pub fn new(lines: Box<T>) -> MarkdownStream<T>
@@ -38,9 +39,9 @@ impl<T: Iterator<Item=String>> MarkdownStream<T> {
 
 // iterator howto - thanks http://rustbyexample.com/trait/iter.html
 
-impl<T: Iterator<Item=String>> Iterator for MarkdownStream<T> {
+pub impl<T: Iterator<Item=String>> Iterator for MarkdownStream<T> {
     type Item = MarkdownEle;
-    fn next(&mut self) -> Option<MarkdownEle> {
+    pub fn next(&mut self) -> Option<MarkdownEle> {
         let mut lines = self.input.deref_mut();
         let line = match lines.next() {
             None => return None,
@@ -56,20 +57,22 @@ mod tests {
     use super::MarkdownStream;
     use mdslurp::MarkdownEle;
     use std::slice::Iter;
+    use std::iter::Iterator; // in prelude? dnw anyway
 
     fn stringvec(input: Vec<&str>) -> (Vec<String>, Iter<String>) {
-        let v_cp = input.clone();
         let out: Vec<String> = input
             .into_iter()
             .map(|s| String::from_str(s) + "\n")
             .collect::<Vec<String>>();
-        (v_cp, out)
+        let v_cp = out.clone();
+        (v_cp, out.drain())
     }
 
     #[test]
     fn t_vec_others() {
         let (v, i) = stringvec(vec!("Hello", "world"));
-        let m = MarkdownStream::new(i);
+        let i2: Iterator<Item=String> = i;
+        let m = MarkdownStream::new(Box::new(i2));
         assert_eq!(m.next(), Some(MarkdownEle::Other { txt: v[0] }));
     }
 }
