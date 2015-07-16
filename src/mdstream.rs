@@ -12,24 +12,24 @@ use std::io::Result;
 use mdslurp::MarkdownEle;
 
 
-pub struct MarkdownStream<T: Iterator<Item=String>> {
-    input: Box<Peekable<Box<T>>>,
+pub struct MarkdownStream {
+    input: Box<Peekable<Box<Iterator<Item=String>>>>,
 }
 
 fn io_unwrap(result: Result<String>) -> Option<String> {
     result.ok()
 }
 
-impl<T: Iterator<Item=String>> MarkdownStream<T> {
-//     pub fn new_io<IoT: Iterator<Item=Result<String>>>(lines: Box<IoT>) -> MarkdownStream<T>
-    pub fn new_io(lines: Box<Iterator<Item=Result<String>>>) -> MarkdownStream<T>
+impl MarkdownStream {
+//     pub fn new_io<IoT: Iterator<Item=Result<String>>>(lines: Box<IoT>) -> MarkdownStream
+    pub fn new_io(lines: Box<Iterator<Item=Result<String>>>) -> MarkdownStream
     {
         let lines: Box<Iterator<Item=String>> =
             Box::new(lines.filter_map(io_unwrap));
         MarkdownStream { input: Box::new(lines.peekable()) }
         // three boxes, hmm
     }
-    pub fn new(lines: Box<T>) -> MarkdownStream<T>
+    pub fn new(lines: Box<Iterator<Item=String>>) -> MarkdownStream
     {
         let lines = lines.peekable();
         MarkdownStream { input: Box::new(lines) }
@@ -38,7 +38,7 @@ impl<T: Iterator<Item=String>> MarkdownStream<T> {
 
 // iterator howto - thanks http://rustbyexample.com/trait/iter.html
 
-impl<T: Iterator<Item=String>> Iterator for MarkdownStream<T> {
+impl Iterator for MarkdownStream {
     type Item = MarkdownEle;
     fn next(&mut self) -> Option<MarkdownEle> {
         let mut lines = self.input.deref_mut();
@@ -55,21 +55,21 @@ impl<T: Iterator<Item=String>> Iterator for MarkdownStream<T> {
 mod tests {
     use super::MarkdownStream;
     use mdslurp::MarkdownEle;
-    use std::slice::Iter;
+    use std::vec::IntoIter;
 
-    fn stringvec(input: Vec<&str>) -> (Vec<String>, Iter<String>) {
+    fn stringvec(input: Vec<&str>) -> (Vec<String>, IntoIter<String>) {
         let v_cp = input.clone();
         let out: Vec<String> = input
             .into_iter()
-            .map(|s| String::from_str(s) + "\n")
+            .map(|s| s.to_string() + "\n")
             .collect::<Vec<String>>();
-        (v_cp, out)
+        (out.clone(), out.into_iter())
     }
 
     #[test]
     fn t_vec_others() {
         let (v, i) = stringvec(vec!("Hello", "world"));
-        let m = MarkdownStream::new(i);
-        assert_eq!(m.next(), Some(MarkdownEle::Other { txt: v[0] }));
+        let mut m = MarkdownStream::new(Box::new(i));
+        assert_eq!(m.next(), Some(MarkdownEle::Other { txt: v[0].to_owned() }));
     }
 }
